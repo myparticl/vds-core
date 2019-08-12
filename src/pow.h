@@ -27,3 +27,4 @@ arith_uint256 GetBlockProof(const CBlockIndex& block);
 int64_t GetBlockProofEquivalentTime(const CBlockIndex& to, const CBlockIndex& from, const CBlockIndex& tip, const Consensus::Params&);
 bool CheckEquihashSolution(const CBlockHeader *pblock, const CChainParams& params);
 #endif // VDS_POW_H
+

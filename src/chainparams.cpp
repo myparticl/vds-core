@@ -6,6 +6,8 @@
 
 #include "validation.h"
 #include "crypto/equihash.h"
+//#include "equi_miner.h"
+#include <pow.h>
 
 #include "util.h"
 #include "utilstrencodings.h"
@@ -63,6 +65,7 @@ static CBlock CreateGenesisBlock(int64_t nVibPool, uint32_t nTime, uint256 nNonc
     // "scriptPubKey": "76a914b8512034ee84547b9929b961e5582f2b3a7e6ab188ac",
 
     std::vector<unsigned char> script = ParseHex("76a914b8512034ee84547b9929b961e5582f2b3a7e6ab188ac");
+    //std::vector<unsigned char> script = ParseHex("76a914de23ea939cddc4b05206e430ac800862c1ff4b9f88ac");
     const CScript genesisOutputScript = CScript(script.begin(), script.end());
 
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nVibPool, nTime, nNonce, nBits, nVersion, genesisReward, vSolution);
@@ -139,9 +142,11 @@ public:
 
         consensus.nFounderPayHeight = consensus.nBlockCountOf1stSeason;
         consensus.nFounderAmount = 12000000 * COIN;
-        consensus.nFounderScript = ParseHex("76a9146974d7944e5475c4982a4c0912efb17172b0598788ac");
+        //consensus.nFounderScript = ParseHex("76a9146974d7944e5475c4982a4c0912efb17172b0598788ac"); //VcaU8YHjzGvWL8xTNn9weq7YGACV1Kx93F8
+        consensus.nFounderScript = ParseHex("76a91410c958c26807b964c92cb00640d772548239b28a88ac");  //VcSPHdhYGDw44UVsjNLq9gYnhs9oc2EiwGK
 
-        strPubkeyVibPreIco = "VcRM27JjdzyxvyFtXewtJHrk6NQGyo9TN7U"; //"1VVVVVVvzycHkuGinFxUnFgn5kqwFuV9P"
+        //strPubkeyVibPreIco = "VccnsMZ89Bd6ecY4gc7U3aJKKH1QgXn65bS"; //"1VVVVVVvzycHkuGinFxUnFgn5kqwFuV9P"
+        strPubkeyVibPreIco = "VcRM27JjdzyxvyFtXewtJHrk6NQGyo9TN7U"; //"1CwLjjt17e7Kw35RfwqhmDpuggtYhgea5t"
         const size_t N = 96, K = 5;
         BOOST_STATIC_ASSERT(equihash_parameters_acceptable(N, K));
         nEquihashN = N;
@@ -174,17 +179,137 @@ public:
         genesis = CreateGenesisBlock(
 
                       7052517017282037,
-                      1547165612, // nTime
-                      uint256S("00000000000000000000000000000000000000000000000000000000000000c1"), // nNonce
+                      //1547165612, // nTime
+                      1559012400,//1558764000, // nTime
+                      uint256S("00000000000000000000000000000000000000000000000000000000000000a9"), // nNonce
                       0x2007ffff, // nBits
                       4, // nVersion
                       1747482982717963, // genesisReward
-                      ParseHex("08bc9767284a389bf0db4ff042d3c18c7d398b9dede5781b75f4a5deec7d51ad92301ae2c96f9e7f3671f3d4cf1b519f88eeab1d31d1c98c82f09fab020e0cdf4ffbb305"));
+                      //ParseHex("08bc9767284a389bf0db4ff042d3c18c7d398b9dede5781b75f4a5deec7d51ad92301ae2c96f9e7f3671f3d4cf1b519f88eeab1d31d1c98c82f09fab020e0cdf4ffbb305"));
+                      ParseHex("042345c90bf3af5e014efb8f098732d6901a27b6429db638824233eb76b6055d078d13beaed35d8636e2b549534839b44394af427249ba56d453b0b553a368816b792018"));
+                      
 
+         printf("Searching for genesis block...\n");
+        // This will figure out a valid hash and Nonce if you're
+        // creating a different genesis block:
+        arith_uint256 hashTarget = hashTarget.SetCompact(genesis.nBits);
+        printf("hashTarget = %s\n", hashTarget.ToString().c_str());
+        arith_uint256 thash;
+
+        while(true)
+        {
+            crypto_generichash_blake2b_state state;
+            std::mutex m_cs;
+            bool cancelSolver = false;
+            std::string solver = GetArg("-equihashsolver", "default");
+            EhInitialiseState(nEquihashN, nEquihashK, state);
+
+            // I = the block header minus nonce and solution.
+            CEquihashInput I{genesis};
+            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+            ss << I;
+
+            // H(I||...
+            crypto_generichash_blake2b_update(&state, (unsigned char*)&ss[0], ss.size());
+
+            // H(I||V||...
+            crypto_generichash_blake2b_state curr_state;
+            curr_state = state;
+            crypto_generichash_blake2b_update(&curr_state,
+                                        genesis.nNonce.begin(),
+                                        genesis.nNonce.size());
+            std::function<bool(std::vector<unsigned char>)> validBlock =
+                [&hashTarget, &m_cs, &cancelSolver, this]
+                    (std::vector<unsigned char> soln) {
+                        // Write the solution to the hash and compute the result.
+                        // printf("- Checking solution against target\n");
+                        genesis.nSolution = soln;
+
+                        if (UintToArith256(genesis.GetPoWHash()) > hashTarget) {
+                            return false;
+                        }
+
+                        if (!CheckEquihashSolution(&genesis, *this)) {
+                            return false;
+                        }
+
+                        // Found a solution
+                        // Ignore chain updates caused by us
+                        std::lock_guard<std::mutex> lock{m_cs};
+                        cancelSolver = false;
+                        return true;
+            };
+            std::function<bool(EhSolverCancelCheck)> cancelled = [&m_cs, &cancelSolver](EhSolverCancelCheck pos) {
+                std::lock_guard<std::mutex> lock{m_cs};
+                return cancelSolver;
+            };
+            if (solver == "tromp") {
+                // Create solver and initialize it.
+                /*
+                equi eq(1);
+                eq.setstate(&curr_state);
+
+                // Intialization done, start algo driver.
+                eq.digit0(0);
+                eq.xfull = eq.bfull = eq.hfull = 0;
+                eq.showbsizes(0);
+                for (u32 r = 1; r < WK; r++) {
+                    (r&1) ? eq.digitodd(r, 0) : eq.digiteven(r, 0);
+                    eq.xfull = eq.bfull = eq.hfull = 0;
+                    eq.showbsizes(r);
+                }
+                eq.digitK(0);
+
+                // Convert solution indices to byte array (decompress) and pass it to validBlock method.
+                bool ready = false;
+                for (size_t s = 0; s < eq.nsols; s++) {
+                    // printf("\rChecking solution %d", int(s+1));
+                    std::vector<eh_index> index_vector(PROOFSIZE);
+                    for (size_t i = 0; i < PROOFSIZE; i++) {
+                        index_vector[i] = eq.sols[s][i];
+                    }
+                    std::vector<unsigned char> sol_char = GetMinimalFromIndices(index_vector, DIGITBITS);
+
+                    if (validBlock(sol_char)) {
+                        // If we find a POW solution, do not try other solutions
+                        // because they become invalid as we created a new block in blockchain.
+                        ready = true;
+                        break;
+                    }
+                }
+                if (ready) break;
+                */
+            } else {
+                try {
+                    // If we find a valid block, we rebuild
+                    bool found = EhOptimisedSolve(nEquihashN, nEquihashK, curr_state, validBlock, cancelled);
+                    if (found) {
+                        break;
+                    }
+                } catch (EhSolverCancelledException&) {
+                    printf("Equihash solver cancelled\n");
+                    std::lock_guard<std::mutex> lock{m_cs};
+                    cancelSolver = false;
+                }
+            }
+
+            genesis.nNonce = ArithToUint256(UintToArith256(genesis.nNonce) + 1);
+        }
+
+        printf("block.nTime = %u \n", genesis.nTime);
+        printf("block.nNonce = %s \n", genesis.nNonce.ToString().c_str());
+        printf("block.GetHash = %s\n", genesis.GetHash().ToString().c_str());
+        printf("block.GetPoWHash = %s\n", genesis.GetPoWHash().ToString().c_str());
+        printf("block.hashMerkleRoot = %s\n", genesis.hashMerkleRoot.ToString().c_str());
+        printf("block.nSolution = %s\n", HexStr(genesis.nSolution.begin(), genesis.nSolution.end()).c_str());//
+
+        
         consensus.hashGenesisBlock = genesis.GetHash();
 //        std::cout <<  consensus.hashGenesisBlock.GetHex() << std::endl;
-        assert(consensus.hashGenesisBlock == uint256S("0804fd488d9f5787d025d8b1e9e199301b5b42bcbe779a4e875983103c6036a8"));
+        //assert(consensus.hashGenesisBlock == uint256S("0804fd488d9f5787d025d8b1e9e199301b5b42bcbe779a4e875983103c6036a8"));
+        assert(consensus.hashGenesisBlock == uint256S("6dab0d3536ead983139416534f7a0b85de15803bc205164c155a768819bf227c"));
         assert(genesis.hashMerkleRoot == uint256S("898ea66248eba5b44db100123c4f09c4e9fe670142268674684752a92461d133"));
+        //assert(genesis.hashMerkleRoot == uint256S("1888f3aa0ce450cbd75b44ffeec790a510b7e3164ba9ae8ca33caf3475485d18"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -234,7 +359,8 @@ public:
 
         // Founders reward script expects a vector of 2-of-3 multisig addresses
         vFoundersRewardAddress = {
-            "13hYCAMdStpxWCBTKoHHZ2fq6FgcuDQ3kv",
+            //"13hYCAMdStpxWCBTKoHHZ2fq6FgcuDQ3kv",
+            "1CE1YN9JeBP3pZD8JTMnUQnVqzwNSD72fj",
             "1DYNUp3MHkdSS7M5k9c14duRhneBzGdmyL",
             "1LY62AtewUiJPXijHHRaFqFKvR5drFWKYg",
             "1GRU6r1KewLcaVQD85BJDfCGKHr9QFrqJN",
@@ -371,8 +497,8 @@ public:
                       ParseHex("0c12ac1006b7febbb2d90b909f1565c99e16a1f5544ecab24512662c0604aba4e33819d928b1a38b59f986a835ad764231c31724c6961b19993c3c65ea740e95c87f36b9"));
         consensus.hashGenesisBlock = genesis.GetHash();
 
-        assert(consensus.hashGenesisBlock == uint256S("bd94031d0ba5bbb72b50eecd5f5444056e5f0f788538e24261878178cdab6a62"));
-        assert(genesis.hashMerkleRoot == uint256S("898ea66248eba5b44db100123c4f09c4e9fe670142268674684752a92461d133"));
+        //assert(consensus.hashGenesisBlock == uint256S("bd94031d0ba5bbb72b50eecd5f5444056e5f0f788538e24261878178cdab6a62"));
+        //assert(genesis.hashMerkleRoot == uint256S("898ea66248eba5b44db100123c4f09c4e9fe670142268674684752a92461d133"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -545,8 +671,8 @@ public:
         consensus.hashGenesisBlock = genesis.GetHash();
         nDefaultPort = 16533;
 //        std::cout << "GenesisBlockHash: " << consensus.hashGenesisBlock.GetHex() << std::endl;
-        assert(consensus.hashGenesisBlock == uint256S("61a8f1d40cac7b7b611e4bedf8d821f98c4b1d4dbef895237e1209e50c75f5e2"));
-        assert(genesis.hashMerkleRoot == uint256S("898ea66248eba5b44db100123c4f09c4e9fe670142268674684752a92461d133"));
+        //assert(consensus.hashGenesisBlock == uint256S("61a8f1d40cac7b7b611e4bedf8d821f98c4b1d4dbef895237e1209e50c75f5e2"));
+        //assert(genesis.hashMerkleRoot == uint256S("898ea66248eba5b44db100123c4f09c4e9fe670142268674684752a92461d133"));
         nPruneAfterHeight = 1000;
 
         vFixedSeeds.clear(); //! Regtest mode doesn't have any fixed seeds.

@@ -486,6 +486,7 @@ libvds_common_a_SOURCES = \
   compressor.cpp \
   core_read.cpp \
   core_write.cpp \
+  chain.cpp \
   eccryptoverify.cpp \
   ecwrapper.cpp \
   hash.cpp \
@@ -497,6 +498,7 @@ libvds_common_a_SOURCES = \
   primitives/block.cpp \
   primitives/transaction.cpp \
   protocol.cpp \
+  pow.cpp \
   pubkey.cpp \
   scheduler.cpp \
   script/interpreter.cpp \

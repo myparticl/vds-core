@@ -2,7 +2,9 @@
 // Copyright (c) 2009-2017 The Bitcoin Core developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
-
+//#ifdef ENABLE_MINING
+//#include "equi_miner.h"
+//#endif
 #include <pow.h>
 #include "crypto/equihash.h"
 #include <arith_uint256.h>
@@ -141,7 +143,29 @@ bool CheckEquihashSolution(const CBlockHeader *pblock, const CChainParams& param
 
     // H(I||V||...
     crypto_generichash_blake2b_update(&state, (unsigned char*) &ss[0], ss.size());
-
+    /*
+    //printf nSolution hash 
+    equi eq(1);
+    eq.setstate(&state);
+    eq.digit0(0);
+    eq.xfull = eq.bfull = eq.hfull = 0;
+    eq.showbsizes(0);
+    for (u32 r = 1; r < k; r++) {
+      (r&1) ? eq.digitodd(r, 0) : eq.digiteven(r, 0);
+      eq.xfull = eq.bfull = eq.hfull = 0;
+      eq.showbsizes(r);
+    }
+    eq.digitK(0);
+    LogPrintf("nsols is %d\n",eq.nsols);
+    for (size_t s = 0; s < eq.nsols; s++) {
+      std::vector<eh_index> index_vector(64);
+      for (size_t i = 0; i < 64; i++) {
+        index_vector[i] = eq.sols[s][i];
+      }
+      std::vector<unsigned char> sol_char = GetMinimalFromIndices(index_vector, 16);
+      LogPrintf("vhash is %s",HexStr(sol_char));
+    }
+*/
     bool isValid;
     EhIsValidSolution(n, k, state, pblock->nSolution, isValid);
     if (!isValid)
@@ -149,3 +173,4 @@ bool CheckEquihashSolution(const CBlockHeader *pblock, const CChainParams& param
 
     return true;
 }
+

@@ -10,7 +10,7 @@
 #include <validation.h>
 #include <util.h>
 #include <random.h>
-#include <bitcoincore/src/vdsbitcoind.h>
+//#include <bitcoincore/src/vdsbitcoind.h>
 #include <boost/lexical_cast.hpp>
 
 #include <memory>
@@ -77,5 +77,5 @@ main(int argc, char** argv)
  **/
 void buseless()
 {
-    BitcoinCore::StartShutdown();
+    //BitcoinCore::StartShutdown();
 }

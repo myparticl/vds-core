@@ -20,7 +20,7 @@ template<class HMAC_SHA>
 void PBKDF2(const unsigned char *dk, size_t dkLen, const unsigned char *password, size_t passwordLen, const unsigned char *salt, size_t saltLen, unsigned rounds)
 {
     const size_t hashLen = HMAC_SHA::OUTPUT_SIZE;//CHMAC_SHA512 return 64 bytes
-
+    
     assert(dk != NULL || dkLen == 0);
     assert(hashLen > 0 && (hashLen % 4) == 0);
     assert(password != NULL || passwordLen == 0);
@@ -28,9 +28,11 @@ void PBKDF2(const unsigned char *dk, size_t dkLen, const unsigned char *password
     assert(rounds > 0);
 
     unsigned char s[saltLen + sizeof(uint32_t)];
+    //unsigned char s[50];
     memcpy(s, salt, saltLen);
 
     unsigned char U[hashLen], T[hashLen];
+    //unsigned char U[32], T[32];
     for (uint32_t i = 0; i < (dkLen + hashLen - 1)/hashLen; i++) {
     	WriteBE32(s + saltLen, i + 1);
 

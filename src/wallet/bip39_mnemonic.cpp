@@ -202,7 +202,7 @@ void BIP39DeriveKey(unsigned char* key64, const char* phrase, const char* passph
         strcpy(salt + strlen("mnemonic"), passphrase);
     }
 
-    PBKDF2<CHMAC_SHA512>(key64, 64, (const unsigned char*) phrase, strlen(phrase), (unsigned char*) salt, strlen(salt), 2048);
+    //PBKDF2<CHMAC_SHA512>(key64, 64, (const unsigned char*) phrase, strlen(phrase), (unsigned char*) salt, strlen(salt), 2048);
     memory_cleanse(salt, saltlen);
     delete[] salt;
 }

@@ -159,8 +159,8 @@ static uint256 _BIP38DerivePassfactor(uint8_t flag, const uint8_t* entropy, cons
     size_t len = strlen(passphrase);
     uint256 prefactor, passfactor;
 
-    Scrypt(prefactor.begin(), prefactor.size(), (const unsigned char*) passphrase, len, entropy, (flag & BIP38_LOTSEQUENCE_FLAG) ? 4 : 8,
-           BIP38_SCRYPT_N, BIP38_SCRYPT_R, BIP38_SCRYPT_P);
+    //Scrypt(prefactor.begin(), prefactor.size(), (const unsigned char*) passphrase, len, entropy, (flag & BIP38_LOTSEQUENCE_FLAG) ? 4 : 8,
+    //       BIP38_SCRYPT_N, BIP38_SCRYPT_R, BIP38_SCRYPT_P);
 
     if (flag & BIP38_LOTSEQUENCE_FLAG) {
         // passfactor = SHA256(SHA256(prefactor + entropy))
@@ -186,7 +186,7 @@ static void _BIP38DeriveKey(unsigned char* output64, const unsigned char* passpo
     memcpy(salt, addresshash, sizeof (uint32_t));
     memcpy(&salt[sizeof (uint32_t)], entropy, sizeof (uint64_t)); // salt = addresshash + entropy
 
-    Scrypt(output64, 64, passpoint33, 33, salt, sizeof (salt), BIP38_SCRYPT_EC_N, BIP38_SCRYPT_EC_R, BIP38_SCRYPT_EC_P);
+    //Scrypt(output64, 64, passpoint33, 33, salt, sizeof (salt), BIP38_SCRYPT_EC_N, BIP38_SCRYPT_EC_R, BIP38_SCRYPT_EC_P);
     memory_cleanse(salt, sizeof (salt));
 }
 
@@ -240,8 +240,8 @@ bool DecryptBIP38Key(unsigned char* key32, std::string& strSecret, const char* b
     memcpy(encrypted2, &data[23], 16);
 
     unsigned char derived[64] = {0};
-    Scrypt(derived, sizeof (derived), (const unsigned char*) passphrase, pwLen, addresshash, sizeof (addresshash),
-           BIP38_SCRYPT_N, BIP38_SCRYPT_R, BIP38_SCRYPT_P);
+    //Scrypt(derived, sizeof (derived), (const unsigned char*) passphrase, pwLen, addresshash, sizeof (addresshash),
+    //       BIP38_SCRYPT_N, BIP38_SCRYPT_R, BIP38_SCRYPT_P);
 
     unsigned char* derived1 = derived; //length 32
     unsigned char* derived2 = &derived[32]; //length 32
@@ -280,8 +280,8 @@ std::string EncryptBIP38Key(const CKey& key, const char* passphrase)
     memcpy(salt, &hash, 4);
 
     unsigned char derived[64] = {0};
-    Scrypt(derived, sizeof (derived), (const unsigned char*) passphrase, strlen(passphrase), salt, sizeof (salt),
-           BIP38_SCRYPT_N, BIP38_SCRYPT_R, BIP38_SCRYPT_P);
+    //Scrypt(derived, sizeof (derived), (const unsigned char*) passphrase, strlen(passphrase), salt, sizeof (salt),
+    //       BIP38_SCRYPT_N, BIP38_SCRYPT_R, BIP38_SCRYPT_P);
 
     unsigned char* derived1 = derived; //length 32
     unsigned char* derived2 = &derived[32]; //length 32
