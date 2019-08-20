@@ -6090,32 +6090,33 @@ bool InitBlockIndex(const CChainParams& chainparams)
     fAddressIndex = GetBoolArg("-addressindex", DEFAULT_ADDRESSINDEX);
     pblocktree->WriteFlag("addressindex", fAddressIndex);
     
-    //Searching genesis block nNonce
+    /* Searching genesis block nNonce
 		CBlock &block = const_cast<CBlock &>(chainparams.GenesisBlock());
 			
 		uint256 hashGenesisBlock = uint256S("0x0804fd488d9f5787d025d8b1e9e199301b5b42bcbe779a4e875983103c6036a8");
 		printf("%s\n",block.GetHash().ToString().c_str());
 		printf("%s\n",hashGenesisBlock.ToString().c_str());
 		printf("%s\n",block.hashMerkleRoot.ToString().c_str());
+		printf("block.nSolution = %s\n", HexStr(block.nSolution.begin(), block.nSolution.end()).c_str());//
 			
 		//assert(block.hashMerkleRoot==uint256S("0x365d2aa75d061370c9aefdabac3985716b1e3b4bb7c4af4ed54f25e5aaa42783"));
 		if(true && block.GetHash()!=hashGenesisBlock)
 		{
 			printf("Searching for genesis block...\n");
 			arith_uint256 hashTarget = arith_uint256().SetCompact(block.nBits);
-      arith_uint256 nNonce = UintToArith256(block.nNonce);
+            arith_uint256 nNonce = UintToArith256(block.nNonce);
 			uint256 thash;
 			while(true) 
 			{
 				//scrypt_N_1_1_256(BEGIN(block.nVersion),BEGIN(thash),GetNfactor(block.nTime));
 				thash = block.GetPoWHash();
-				if(UintToArith256(thash) < hashTarget) break;
+				if ((UintToArith256(thash) < hashTarget) && CheckEquihashSolution(&block, *this) ) break;
 				//if((nNonce & 0x001) == 0)
 				//{
 					printf("nonce %s:hash=%s:target=%s\n",block.nNonce.ToString().c_str(),thash.ToString().c_str(),hashTarget.ToString().c_str());
 				//}
 				++nNonce;
-        block.nNonce = ArithToUint256(nNonce);
+                block.nNonce = ArithToUint256(nNonce);
 				if (nNonce == 0)
 				{
 					printf("NONCE WRAPPED, incrementing time\n");
@@ -6127,16 +6128,17 @@ bool InitBlockIndex(const CChainParams& chainparams)
 			printf("computed powHash = %s \n", thash.ToString().c_str());
 			printf("block.GetHash = %s\n", block.GetHash().ToString().c_str());
 			printf("block.hashMerkleRoot = %s\n", block.hashMerkleRoot.ToString().c_str());
+			printf("block.nSolution = %s\n", HexStr(block.nSolution.begin(), block.nSolution.end()).c_str());//
 				
 		}
 		//printf();
 		//assert(block.GetHash() == hashGenesisBlock);
 
-
+    */
     // Only add the genesis block if not reindexing (in which case we reuse the one already on disk)
     if (!fReindex) {
         try {
-            //CBlock& block = const_cast<CBlock&> (Params().GenesisBlock());
+            CBlock& block = const_cast<CBlock&> (Params().GenesisBlock());
             // Start new block file
             unsigned int nBlockSize = ::GetSerializeSize(block, SER_DISK, CLIENT_VERSION);
             CDiskBlockPos blockPos;
