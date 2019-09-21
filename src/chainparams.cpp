@@ -65,7 +65,8 @@ static CBlock CreateGenesisBlock(int64_t nVibPool, uint32_t nTime, uint256 nNonc
     // "scriptPubKey": "76a914b8512034ee84547b9929b961e5582f2b3a7e6ab188ac",
 
     //std::vector<unsigned char> script = ParseHex("76a914b8512034ee84547b9929b961e5582f2b3a7e6ab188ac");
-    std::vector<unsigned char> script = ParseHex("76a914da85409224a452078a62ecec9f41232c9b54d10088ac");
+    //std::vector<unsigned char> script = ParseHex("76a914da85409224a452078a62ecec9f41232c9b54d10088ac");
+	std::vector<unsigned char> script = ParseHex("76a914ebfb107ecfc7cbffa8ec0d5baa18689871e2585388ac"); //VcnNHBA8gzR6cgj6Sv87Zb2PTRnKog9QiC4
     const CScript genesisOutputScript = CScript(script.begin(), script.end());
 
     return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nVibPool, nTime, nNonce, nBits, nVersion, genesisReward, vSolution);
@@ -143,10 +144,12 @@ public:
         consensus.nFounderPayHeight = consensus.nBlockCountOf1stSeason;
         consensus.nFounderAmount = 12000000 * COIN;
         //consensus.nFounderScript = ParseHex("76a9146974d7944e5475c4982a4c0912efb17172b0598788ac"); //VcaU8YHjzGvWL8xTNn9weq7YGACV1Kx93F8
-        consensus.nFounderScript = ParseHex("76a9145cde40fd9782b4ab4e8cbef9f4b4e1dc21631e2288ac");  //VcZKa2w61gyZgmRcuynWrp7Aj1EgrJyzqZR
+        //consensus.nFounderScript = ParseHex("76a9145cde40fd9782b4ab4e8cbef9f4b4e1dc21631e2288ac");  //VcZKa2w61gyZgmRcuynWrp7Aj1EgrJyzqZR
+		consensus.nFounderScript = ParseHex("76a9147fbfd314876ab386833e02503150a5f75977b8cf88ac");  //VccW1ENzUPLocBWjoHrGfMv1oVCyatLwd71
 
         //strPubkeyVibPreIco = "VcRM27JjdzyxvyFtXewtJHrk6NQGyo9TN7U"; //"1VVVVVVvzycHkuGinFxUnFgn5kqwFuV9P"
-        strPubkeyVibPreIco = "VcW6ZF4Ja6B9o1QxK2coHrf9NFFNgmQkwCn"; //"16F2dF4S2CAUKuy46TAx3aexevrYudLsSN"
+        //strPubkeyVibPreIco = "VcW6ZF4Ja6B9o1QxK2coHrf9NFFNgmQkwCn"; //"16F2dF4S2CAUKuy46TAx3aexevrYudLsSN"
+		strPubkeyVibPreIco = "VcjoS9dF6DwTNuATr7dUEtiiA5AWHnLZWha"; //"1KwuXozx9xU4DfUbBTqu5eDkUqz9p41cM1"
         const size_t N = 96, K = 5;
         BOOST_STATIC_ASSERT(equihash_parameters_acceptable(N, K));
         nEquihashN = N;
@@ -154,7 +157,8 @@ public:
         /**
          * The message start string should be awesome! ⓥ❤ (ASCII)
          */
-        pchMessageStart[0] = 0x24;
+        //pchMessageStart[0] = 0x24;
+		pchMessageStart[0] = 0x25;
         pchMessageStart[1] = 0xe5;
         pchMessageStart[2] = 0x27;
         pchMessageStart[3] = 0x64;
@@ -180,13 +184,16 @@ public:
 
                       7052517017282037,
                       //1547165612, // nTime
-                      1565596800,//1558764000, // nTime
-                      uint256S("00000000000000000000000000000000000000000000000000000000000000b9"), // nNonce
+                      //1565596800,//1558764000, // nTime
+					  1569045600,//1558764000, // nTime
+                      //uint256S("00000000000000000000000000000000000000000000000000000000000000b9"), // nNonce
+					  uint256S("00000000000000000000000000000000000000000000000000000000000000dc"), // nNonce
                       0x2007ffff, // nBits
                       4, // nVersion
                       1747482982717963, // genesisReward
                       //ParseHex("08bc9767284a389bf0db4ff042d3c18c7d398b9dede5781b75f4a5deec7d51ad92301ae2c96f9e7f3671f3d4cf1b519f88eeab1d31d1c98c82f09fab020e0cdf4ffbb305"));
-                      ParseHex("009389e0b5d30f45a81720ea9da21b33a501b4d27c2675716ae9271898fb8d24bd1480c1e3ddda540be3370d4aefaed7b0719721a09f93d600c31e981bf7d670941a8b2d5"));
+                      //ParseHex("009389e0b5d30f45a81720ea9da21b33a501b4d27c2675716ae9271898fb8d24bd1480c1e3ddda540be3370d4aefaed7b0719721a09f93d600c31e981bf7d670941a8b2d5"));
+					  ParseHex("108cdca34521b544627aaf3a051afc983b262d69918d53c802634291a1b27b7d7087278c62d99b08937e7ce26e716753a5c86b2cac703fdf16507db702d5afc9f74fcd2f"));
                       
 
         printf("Searching for genesis block...\n");
@@ -308,9 +315,11 @@ public:
         consensus.hashGenesisBlock = genesis.GetHash();
 //        std::cout <<  consensus.hashGenesisBlock.GetHex() << std::endl;
         //assert(consensus.hashGenesisBlock == uint256S("0804fd488d9f5787d025d8b1e9e199301b5b42bcbe779a4e875983103c6036a8"));
-        assert(consensus.hashGenesisBlock == uint256S("e75ffb8dd67f55e7df217dbecc660b673c1e1001a458df964453966b2eef757a"));
-        assert(genesis.hashMerkleRoot == uint256S("461956d5de2787730eb6363622c5758c9647793de63fec2115b1082ac8ec3241"));
         //assert(genesis.hashMerkleRoot == uint256S("1888f3aa0ce450cbd75b44ffeec790a510b7e3164ba9ae8ca33caf3475485d18"));
+		//assert(consensus.hashGenesisBlock == uint256S("e75ffb8dd67f55e7df217dbecc660b673c1e1001a458df964453966b2eef757a"));
+        //assert(genesis.hashMerkleRoot == uint256S("461956d5de2787730eb6363622c5758c9647793de63fec2115b1082ac8ec3241"));
+		assert(consensus.hashGenesisBlock == uint256S("cf33371615c7e2dbe82dc5ec6c3f8c8e14ab577361b247fd3994d0dd6a0d8779"));
+        assert(genesis.hashMerkleRoot == uint256S("4a5edd4f338f3bec6e21cd5145880ca1f8b8df140c55833b1664b4541b54611f"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -491,13 +500,15 @@ public:
 
                       7052517017282037,
                       //1547165612, // nTime
-					  1565596800,
+					  //1565596800,
+					  1569045600,
                       uint256S("0000000000000000000000000000000000000000000000000000000000000011"), // nNonce
                       0x2007ffff, // nBits
                       4, // nVersion
                       1747482982717963, // genesisReward
                       //ParseHex("0c12ac1006b7febbb2d90b909f1565c99e16a1f5544ecab24512662c0604aba4e33819d928b1a38b59f986a835ad764231c31724c6961b19993c3c65ea740e95c87f36b9"));
-                      ParseHex("0c37df4b6d5c174485048fe49e574551ef0f1e5fa9da17bc5e91ba875bc98c2be50418db97798a15343c488e7e7edad969a27822044ae817fb949636a17593961f83a4e3"));
+                      //ParseHex("0c37df4b6d5c174485048fe49e574551ef0f1e5fa9da17bc5e91ba875bc98c2be50418db97798a15343c488e7e7edad969a27822044ae817fb949636a17593961f83a4e3"));
+					  ParseHex("01ee920005c426df60d2b0c71c8ebc66971019a431e5b5fd7293f25721055fdb5f111d075b704b7570c593649af8cad869c2b23763d763a840372fa4cd5f2c36637334fe"));
 		
 		printf("Searching for testnet genesis block...\n");
         // This will figure out a valid hash and Nonce if you're
@@ -621,8 +632,10 @@ public:
 
         //assert(consensus.hashGenesisBlock == uint256S("bd94031d0ba5bbb72b50eecd5f5444056e5f0f788538e24261878178cdab6a62"));
         //assert(genesis.hashMerkleRoot == uint256S("898ea66248eba5b44db100123c4f09c4e9fe670142268674684752a92461d133"));
-        assert(consensus.hashGenesisBlock == uint256S("ffc49ff57b50825d365871222ad3d623811cc94b5e6a80be2b19f442c24eb5ec"));
-        assert(genesis.hashMerkleRoot == uint256S("461956d5de2787730eb6363622c5758c9647793de63fec2115b1082ac8ec3241"));
+        //assert(consensus.hashGenesisBlock == uint256S("ffc49ff57b50825d365871222ad3d623811cc94b5e6a80be2b19f442c24eb5ec"));
+        //assert(genesis.hashMerkleRoot == uint256S("461956d5de2787730eb6363622c5758c9647793de63fec2115b1082ac8ec3241"));
+		assert(consensus.hashGenesisBlock == uint256S("e5cc89a48d70cd1fb5764dc0b568dbb0071b7ac5a28124a44db0784790cc1636"));
+        assert(genesis.hashMerkleRoot == uint256S("4a5edd4f338f3bec6e21cd5145880ca1f8b8df140c55833b1664b4541b54611f"));
 
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -787,13 +800,15 @@ public:
         genesis = CreateGenesisBlock(
                       7052517017282037,
                       //1547165612,
-					  1565596800,
+					  //1565596800,
+					  1569045600,
                       uint256S("0000000000000000000000000000000000000000000000000000000000000000"),
                       0x207fffff,
                       4,
                       1747482982717963,
                       //ParseHex("05301f3bc8725d28e321b3959ae31572a21c06e9535dd8b0b665950d8949b10d3ee60ed2e2fca3ec7630e20fa5e1d6feabf89d1c185dc6157cb9d0029c0f05f50ac3f439"));
-					  ParseHex("01c238f14861a9b1eaef86a22ac53dadb01ac98e6d8ed18785434b7f916d70d1733a0e41f3ae937c9dcb84c4f60f3e2e019ab90f0fd93f10437ee3d80b6605f7ec67fe76"));
+					  //ParseHex("01c238f14861a9b1eaef86a22ac53dadb01ac98e6d8ed18785434b7f916d70d1733a0e41f3ae937c9dcb84c4f60f3e2e019ab90f0fd93f10437ee3d80b6605f7ec67fe76"));
+					  ParseHex("049e78409f7abb69c966470023523dfd640a03a71e8396160502d3760b1ac6c3790514620f738af5197c65e88bb2d9f99fa5831fff45fae0a6b240769a9e861aa94fd0d3"));
         
 		printf("Searching for regnet genesis block...\n");
         // This will figure out a valid hash and Nonce if you're
@@ -925,9 +940,10 @@ public:
 //        std::cout << "GenesisBlockHash: " << consensus.hashGenesisBlock.GetHex() << std::endl;
         //assert(consensus.hashGenesisBlock == uint256S("61a8f1d40cac7b7b611e4bedf8d821f98c4b1d4dbef895237e1209e50c75f5e2"));
         //assert(genesis.hashMerkleRoot == uint256S("898ea66248eba5b44db100123c4f09c4e9fe670142268674684752a92461d133"));
-		assert(consensus.hashGenesisBlock == uint256S("f9fc4412df0da219e7a0c28ea06ed1e80e0b49439ba156e351c97b108a02bc82"));
-        assert(genesis.hashMerkleRoot == uint256S("461956d5de2787730eb6363622c5758c9647793de63fec2115b1082ac8ec3241"));
-		
+		//assert(consensus.hashGenesisBlock == uint256S("f9fc4412df0da219e7a0c28ea06ed1e80e0b49439ba156e351c97b108a02bc82"));
+        //assert(genesis.hashMerkleRoot == uint256S("461956d5de2787730eb6363622c5758c9647793de63fec2115b1082ac8ec3241"));
+		assert(consensus.hashGenesisBlock == uint256S("7ed1eabc3ec2a8c37730f2f2ea794362884af5f974298783a7095caf1e13a9f6"));
+        assert(genesis.hashMerkleRoot == uint256S("4a5edd4f338f3bec6e21cd5145880ca1f8b8df140c55833b1664b4541b54611f"));		
         nPruneAfterHeight = 1000;
 
         vFixedSeeds.clear(); //! Regtest mode doesn't have any fixed seeds.
